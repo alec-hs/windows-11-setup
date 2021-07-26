@@ -34,6 +34,9 @@ Set-ExplorerOptions
 # Hide all Desktop Icons
 Set-DesktopIconsHidden
 
+# Remove Default Programs
+Remove-WindowsBloatApps
+
 # Clean Start Menu
 Remove-StartMenuItems
 

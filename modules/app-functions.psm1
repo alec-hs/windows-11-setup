@@ -121,3 +121,20 @@ Function Install-MyAppsWinget {
     winget install 'VLC'
     winget install 'Adobe.AdobeAcrobatReaderDC'
 }
+
+Function Remove-WindowsBloatApps {
+    Remove-AppxPackage -Package "Microsoft.ZuneMusic_10.21061.10121.0_x64__8wekyb3d8bbwe" # Groove Music
+    Remove-AppxPackage -Package "Microsoft.WindowsMaps_1.0.28.0_x64__8wekyb3d8bbwe" # Maps
+    Remove-AppxPackage -Package "Microsoft.WindowsSoundRecorder_1.0.42.0_x64__8wekyb3d8bbwe" # Voice Recorder
+    Remove-AppxPackage -Package "Microsoft.MicrosoftSolitaireCollection_4.9.6151.0_x64__8wekyb3d8bbwe" # Solitaire Collection
+    Remove-AppxPackage -Package "Microsoft.BingWeather_1.0.6.0_x64__8wekyb3d8bbwe" # Weather
+    Remove-AppxPackage -Package "Microsoft.BingNews_1.0.6.0_x64__8wekyb3d8bbwe" # MS News
+    Remove-AppxPackage -Package "Microsoft.Getstarted_10.4.41811.0_x64__8wekyb3d8bbwe" # Get Started
+    Remove-AppxPackage -Package "Microsoft.Todos_0.49.41972.0_x64__8wekyb3d8bbwe" # Todo
+    Remove-AppxPackage -Package "Microsoft.ZuneVideo_10.21061.10121.0_x64__8wekyb3d8bbwe" # Films & TV
+    Remove-AppxPackage -Package "microsoft.windowscommunicationsapps_16005.14228.20204.0_x64__8wekyb3d8bbwe" # Mail and Calender
+    Remove-AppxPackage -Package "Microsoft.MicrosoftStickyNotes_4.0.4.0_x64__8wekyb3d8bbwe" # Sticky Notes
+    Remove-AppxPackage -Package "Microsoft.GetHelp_10.2105.41472.0_x64__8wekyb3d8bbwe" # Get Help
+    Remove-AppxPackage -Package "Microsoft.WindowsFeedbackHub_1.2106.1801.0_x64__8wekyb3d8bbwe" # Feedback Hub 
+    Remove-AppxPackage -Package "Microsoft.549981C3F5F10_3.2106.14307.0_x64__8wekyb3d8bbwe" # Cortana
+}
