@@ -4,6 +4,10 @@
 #scheduled task to commit dot
 #gpg key
 #nordpass, spotify, adobe, teamviewer all fail checksums
+#mouse settings
+#ps7 as default
+#clean start menu
+#home folders
 
 # Start Transcript
 Start-Transcript -Path ".\setup.log"
@@ -24,8 +28,7 @@ Import-Module BitsTransfer
 # TODO - check if folders already exist 
 Add-AdditionalFolders
 
-# Set Networks to Private
-# ELEVATED ISSUE - wont run
+# Set Networks to Private=
 Set-NetworkTypes
 
 # Set File Explorer options
@@ -37,17 +40,11 @@ Set-DesktopIconsHidden
 # Remove Default Programs
 Remove-WindowsBloatApps
 
-# Clean Start Menu
-Remove-StartMenuItems
-
 # Move Home Folders to OneDrive
 Move-HomeFolders
 
 # Restart Explorer
 Restart-Explorer
-
-# Dowload and install winget and dependencies
-Install-WinGet
 
 # Install My Apps with Winget
 Install-MyAppsWinget
@@ -67,9 +64,6 @@ Install-ChoEazyCopy
 # Enable Windows Features
 Enable-HyperV
 Enable-WSL2
-
-# Set ps1 files to open in PS7
-Set-PS7Default
 
 # Reload PATH from Environment Variables
 Reset-Path

@@ -20,11 +20,6 @@ Function Set-ExplorerOptions {
     Set-ItemProperty $key "AutoCheckSelect" 1               # Show check boxes in explorer
     Set-ItemProperty $key "DontPrettyPath" 1                # Keep user path case
     Set-ItemProperty $key "MultiTaskingAltTabFilter" 3      # Alt Tab to Windows only, no Edge Tabs
-
-    $key = "HKCU:\Control Panel\Mouse"
-    Set-ItemProperty $key "MouseSpeed" 0                    # Disable Mouse Acceleration
-    Set-ItemProperty $key "MouseThreshold1" 0               # 
-    Set-ItemProperty $key "MouseThreshold2" 0               # 
 }
 
 # Hide all icons from desktop
@@ -42,4 +37,5 @@ Function Move-HomeFolders {
 Function Add-AdditionalFolders {
     New-Item -Path "C:\" -Name "Temp" -ItemType "Directory"
     New-Item -Path "C:\" -Name "Tools" -ItemType "Directory"
+    New-Item -Path $env:USERPROFILE -Name "Source" -ItemType "Directory"
 }

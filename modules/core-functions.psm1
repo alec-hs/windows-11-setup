@@ -23,6 +23,7 @@ Function Remove-ScriptFiles {
     Remove-Item .\modules -Recurse -Force
     Remove-Item .\README.md -Force
     Remove-Item .\setup.ps1 -Force
+    Remove-Item .\LICENSE -Force
 }
 
 # End Script
