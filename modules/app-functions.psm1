@@ -20,13 +20,6 @@ Function Install-ChoEazyCopy {
     Expand-Archive -LiteralPath $path -DestinationPath "$installPath\ChoEazyCopy"
 }
 
-Function Set-PS7Default {
-    # Set Powershell 7 to Default
-    Write-Output "Setting PS7 as Default..." `n
-    $key = "HKLM:\Software\Classes\Microsoft.PowerShellScript.1\Shell\Open\Command"
-    Set-ItemProperty $key '(Default)' '"C:\Program Files\PowerShell\7\pwsh.exe" "%1"'
-}
-
 Function Install-Choco {
     # Setup Chocolatey Package Manager
     Write-Output "Installing Chocolatey Package Manager..." `n
@@ -67,59 +60,15 @@ Function Install-MyAppsWinget {
     # Install Autoupdating Apps with WinGet
     Write-Output "Installing desktop apps..." `n
 
-    # Install Utility Apps
-    # -i : interative install for setting options
-    winget install 'odt'
-    winget install 'Microsoft Edge'
-    winget install 'PowerToys'
-    winget install '7zip'
-    winget install 'TreeSize Free'
-    winget install 'PuTTY'
-    winget install 'Link Shell Extension'
-    winget install 'WinSCP'
-    winget install 'CPU-Z'
-    winget install 'zerotier'
-    winget install 'CrystalDiskInfo'
-    winget install 'CrystalDiskMark'
-    winget install 'Powershell' -i
-    winget install 'Windows Terminal'
-    winget install 'Google Chrome'
-    winget install 'NordVPN'
-    winget install 'Dropbox'
-    winget install 'Rufus'
-    winget install 'Slack'
-    winget install 'Streamdeck'
-    winget install 'Wavelink' -i
-    winget install 'Gyazo'
-    winget install 'Nordpass'
-    winget install 'AMD Ryzen Master'
+    $wingetApps = Import-CSV ./app-files/winget-apps.csv
 
-    # Install Gaming Apps
-    winget install 'Nvidia GeForce Experience'
-    winget install 'Steam'
-    winget install 'Ubisoft Connect'
-
-    # Install Comms Apps
-    winget install 'Teamspeak Client'
-    winget install 'Discord'
-
-    # Install Dev Apps
-    winget install 'Visual Studio Code (System Installer - x64)' -i
-    winget install 'Visual Studio Community'
-    winget install 'Git' -i
-    winget install 'gpg4win'
-    winget install 'GitHub Desktop'
-    winget install 'Python' -i
-    winget install 'AzureDataStudio'
-    winget install 'Amazon.AWSCLI'
-    winget install 'Docker Desktop'
-
-    # Install Media Apps
-    winget install 'Plex For Windows'
-    winget install 'OBS Studio'
-    winget install 'Audacity'
-    winget install 'VLC'
-    winget install 'Adobe.AdobeAcrobatReaderDC'
+    foreach ($app in $wingetApps) {
+        if ($app.Interactive -eq 'y') {
+            winget install $app.App -i
+        } else {
+            winget install $app.App
+        }
+    }
 }
 
 Function Remove-WindowsBloatApps {
