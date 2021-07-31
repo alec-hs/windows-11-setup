@@ -16,8 +16,3 @@ Function Enable-HyperV {
     Write-Output "Enabling Hyper V..." `n
     Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All -NoRestart
 }
-
-Function Enable-WSL2 {
-    Write-Output "Enabling WSL2..." `n
-    Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux -All -NoRestart
-}

@@ -46,6 +46,9 @@ Move-HomeFolders
 # Restart Explorer
 Restart-Explorer
 
+# Install WSL2 with Debian
+Install-WSL2
+
 # Install My Apps with Winget
 Install-MyAppsWinget
 
@@ -63,7 +66,6 @@ Install-ChoEazyCopy
 
 # Enable Windows Features
 Enable-HyperV
-Enable-WSL2
 
 # Reload PATH from Environment Variables
 Reset-Path

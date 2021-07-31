@@ -56,6 +56,10 @@ Function Install-Office {
     Start-Process -FilePath $path -ArgumentList "/configure m365.xml" -Wait
 }
 
+Function Install-WSL2 {
+    wsl --install -d Debian
+}
+
 Function Install-MyAppsWinget {
     # Install Autoupdating Apps with WinGet
     Write-Output "Installing desktop apps..." `n
