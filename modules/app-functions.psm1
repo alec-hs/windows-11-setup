@@ -67,11 +67,19 @@ Function Install-MyAppsWinget {
     $wingetApps = Import-CSV ./app-files/winget-apps.csv
 
     foreach ($app in $wingetApps) {
-        if ($app.Interactive -eq 'y') {
-            winget install $app.App -i
-        } else {
-            winget install $app.App
+        switch ($app.Scope) {
+            'd' {$scope = ''}
+            'm' {$scope = '--scope "machine"'}
+            'u' {$scope = '--scope "user"'}
         }
+
+        switch ($app.Interactive) {
+            'n' {$interactive = ''}
+            'y' {$interactive = '-i'}
+        }
+
+        $appName = $app.App
+        iex "winget install `"$appName`" $scope $interactive"
     }
 }
 

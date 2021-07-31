@@ -8,6 +8,8 @@
 #ps7 as default
 #clean start menu
 #home folders
+#open windows terminal as admin here
+#link shell extension - VS2017 Sp1 Redis
 
 # Start Transcript
 Start-Transcript -Path ".\setup.log"
