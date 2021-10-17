@@ -11,13 +11,6 @@
 #open windows terminal as admin here
 #link shell extension - VS2017 Sp1 Redis
 
-# Start Transcript
-Start-Transcript -Path ".\setup.log"
-
-# Set execution policy to allow online PS scripts for this session
-Write-Output "Setting Execution Policy for Session..."`n
-Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process' -Force
-
 # Import Module Files
 Write-Output "Importing Modules..."
 Import-Module ".\modules\core-functions.psm1"
@@ -25,6 +18,13 @@ Import-Module ".\modules\computer-functions.psm1"
 Import-Module ".\modules\user-functions.psm1"
 Import-Module ".\modules\app-functions.psm1"
 Import-Module BitsTransfer
+
+# Start Transcript
+Start-Transcript -Path ".\setup.log"
+
+# Set execution policy to allow online PS scripts for this session
+Write-Output "Setting Execution Policy for Session..."`n
+Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process' -Force
 
 # Create some folders I use
 # TODO - check if folders already exist 

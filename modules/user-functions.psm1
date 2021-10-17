@@ -35,7 +35,7 @@ Function Move-HomeFolders {
 
 # Create additional folders
 Function Add-AdditionalFolders {
-    New-Item -Path "C:\" -Name "Temp" -ItemType "Directory"
-    New-Item -Path "C:\" -Name "Tools" -ItemType "Directory"
-    New-Item -Path $env:USERPROFILE -Name "Source" -ItemType "Directory"
+    New-Item -Path "C:\" -Name "Temp" -ItemType "Directory" -Force
+    New-Item -Path "C:\" -Name "Tools" -ItemType "Directory" -Force
+    New-Item -Path $env:USERPROFILE -Name "Source" -ItemType "Directory" -Force
 }
