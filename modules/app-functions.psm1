@@ -57,7 +57,7 @@ Function Install-Office {
 }
 
 Function Install-WSL2 {
-    wsl --install -d Debian
+    wsl --install
 }
 
 Function Install-MyAppsWinget {
@@ -78,8 +78,13 @@ Function Install-MyAppsWinget {
             'y' {$interactive = '-i'}
         }
 
+        switch ($app.Source) {
+            's' {$source = '-s msstore'}
+            'w' {$source = '-s winget'}
+        }
+
         $appName = $app.App
-        iex "winget install `"$appName`" $scope $interactive"
+        Invoke-Expression "winget install `"$appName`" $scope $interactive $source"
     }
 }
 
