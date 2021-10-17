@@ -32,3 +32,16 @@ Function Show-ScriptEnding {
     Write-Output " `n### Script Complete ###`n`nLog can be found here: .\setup.log`n`n### PC will now reboot ###"
     Pause
 } 
+
+Function Remove-ItemSafely {
+    param(
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty]
+        [string]
+        $path
+    )
+
+    if (Test-Path $path) {
+        Remove-Item $path -Force -Recurse -ErrorAction SilentlyContinue
+    }
+}
