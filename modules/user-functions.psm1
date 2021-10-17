@@ -43,5 +43,5 @@ Function Add-AdditionalFolders {
 # Setup dotfile repo
 Function Install-Dotfiles {
     Write-Output "Installing dotfiles..."
-    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/alec-hs/dotfiles/main/run-once.ps1'))
+    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/alec-hs/dotfiles/main/runOnce.ps1'))
 }
