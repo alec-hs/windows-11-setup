@@ -75,6 +75,9 @@ Reset-Path
 # Delete Desktop Shortcuts
 Remove-DesktopShortcuts
 
+# Install dotfiles
+Install-Dotfiles
+
 # Restart explorer
 Restart-Explorer
 

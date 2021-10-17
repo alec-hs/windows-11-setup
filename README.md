@@ -12,4 +12,4 @@ How to use:
 4 - Execute
     Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 5 - Run the script
-    iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/alec-hs/windows-11-setup/maininfrastructure@seraph.ai/setup.ps1'))
+    iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/alec-hs/windows-11-setup/main/setup.ps1'))

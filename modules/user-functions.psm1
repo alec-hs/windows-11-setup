@@ -39,3 +39,9 @@ Function Add-AdditionalFolders {
     New-Item -Path "C:\" -Name "Tools" -ItemType "Directory" -Force
     New-Item -Path $env:USERPROFILE -Name "Source" -ItemType "Directory" -Force
 }
+
+# Setup dotfile repo
+Function Install-Dotfiles {
+    Write-Output "Installing dotfiles..."
+    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/alec-hs/dotfiles/main/run-once.ps1'))
+}
