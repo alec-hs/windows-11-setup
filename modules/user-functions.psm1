@@ -33,11 +33,13 @@ Function Move-HomeFolders {
    
 }
 
-# Create additional folders
+# Create additional folders and pin to quick access
 Function Add-AdditionalFolders {
     New-Item -Path "C:\" -Name "Temp" -ItemType "Directory" -Force
-    New-Item -Path "C:\" -Name "Tools" -ItemType "Directory" -Force
     New-Item -Path $env:USERPROFILE -Name "Source" -ItemType "Directory" -Force
+    $o = New-Object -ComObject Shell.Application
+    $o.NameSpace("C:\Temp").Self.InvokeVerb("pintohome")
+    $o.NameSpace("$env:USERPROFILE\Source").Self.InvokeVerb("pintohome")
 }
 
 # Setup dotfile repo

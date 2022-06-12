@@ -1,9 +1,5 @@
 ## TODO ##
-#dot files
-#dot files repo
-#scheduled task to commit dot
-#gpg key
-#nordpass, spotify, adobe, teamviewer all fail checksums
+#adobe
 #mouse settings
 #ps7 as default
 #clean start menu
@@ -27,7 +23,6 @@ Write-Output "Setting Execution Policy for Session..."`n
 Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process' -Force
 
 # Create some folders I use
-# TODO - check if folders already exist 
 Add-AdditionalFolders
 
 # Set Networks to Private=
@@ -59,12 +54,6 @@ Install-Choco
 
 # Install My Apps with Choclatey
 Install-MyAppsChoco
-
-# Install Logitech Gaming Hub
-Install-LGHub
-
-# Install ChoEazy
-Install-ChoEazyCopy
 
 # Enable Windows Features
 Enable-HyperV

@@ -1,25 +1,3 @@
-Function Install-LGHub {
-    # Manually install Logitech Gaming Hub
-    Write-Output "Installing Logitech G HUB..." `n
-    $url = "https://download01.logi.com/web/ftp/pub/techsupport/gaming/lghub_installer.exe"
-    $path = ".\app-files\lghub_installer.exe"
-    Start-BitsTransfer $url $path
-    Start-Process $path -Wait
-}
-
-Function Install-ChoEazyCopy {
-    # Manually install ChoEazyCopy
-    Write-Output "Installing ChoEazyCopy..." `n
-    $url = "https://github.com/Cinchoo/ChoEazyCopy/releases/latest/download/ChoEazyCopy.zip"
-    $path = ".\app-files\ChoEazyCopy.zip"
-    Start-BitsTransfer $url $path
-    $installPath = "C:\Tools\"
-    if (!(Test-Path $installPath)) {
-        New-Item -ItemType Directory -Path $installPath -Force
-    }
-    Expand-Archive -LiteralPath $path -DestinationPath "$installPath\ChoEazyCopy"
-}
-
 Function Install-Choco {
     # Setup Chocolatey Package Manager
     Write-Output "Installing Chocolatey Package Manager..." `n
@@ -38,11 +16,9 @@ Function Install-MyAppsChoco {
 
     # Utility Apps
     Write-Output "Installing Utility Apps..." `n
-    choco install aida64-extreme -y
     choco install scrcpy -y
     choco install hcloud -y
     choco install evga-precision-x1 -y
-    choco install amd-ryzen-chipset -y
 
     # Upgrade Choco Packages
     Write-Output "Updating Chocolatey Packages..." `n
