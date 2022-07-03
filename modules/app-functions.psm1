@@ -4,27 +4,6 @@ Function Install-Choco {
     Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 }
 
-Function Install-MyAppsChoco {
-    # Update Choco Packages
-    Write-Output "Updating Chocolatey Package List..." `n
-    choco upgrade all -y
-
-    # Install Apps using Chocolatey
-    # GUI Package Manager
-    Write-Output "Installing Chocolatey GUI..." `n
-    choco install chocolateygui -y
-
-    # Utility Apps
-    Write-Output "Installing Utility Apps..." `n
-    choco install scrcpy -y
-    choco install hcloud -y
-    choco install evga-precision-x1 -y
-
-    # Upgrade Choco Packages
-    Write-Output "Updating Chocolatey Packages..." `n
-    choco upgrade all -y
-}
-
 Function Install-Office {
     $path = "C:\Program Files\OfficeDeploymentTool\setup.exe"
     Copy-Item ".\app-files\odt\m365.xml" -Destination "C:\Program Files\OfficeDeploymentTool\m365.xml"

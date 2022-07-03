@@ -1,10 +1,10 @@
 ## TODO ##
 #adobe
+#LG TV Companion
 #mouse settings
 #ps7 as default
 #clean start menu
 #home folders
-#open windows terminal as admin here
 #link shell extension - VS2017 Sp1 Redis
 
 # Import Module Files
@@ -50,10 +50,7 @@ Install-WSL2
 Install-MyAppsWinget
 
 # Install Choco
-Install-Choco
-
-# Install My Apps with Choclatey
-Install-MyAppsChoco
+#Install-Choco
 
 # Enable Windows Features
 Enable-HyperV
