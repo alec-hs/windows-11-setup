@@ -18,6 +18,16 @@ Function Install-Choco {
     Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 }
 
+Function Install-Beacn {
+    Write-Output "Installing BEACN software..." `n
+    $link = "https://beacn-app-public-download.s3.us-west-1.amazonaws.com/BEACN+Setup+V1.0.238.0.exe"
+    $path = ".\app-files\BEACN+Setup+V1.0.238.0.exe"
+    Invoke-WebRequest -Uri $link -OutFile $path
+    Start-Process -FilePath $path -Wait
+    Remove-Item -Path $path
+}
+
+
 Function Install-Office {
     $path = "C:\Program Files\OfficeDeploymentTool\setup.exe"
     Copy-Item ".\app-files\odt\m365.xml" -Destination "C:\Program Files\OfficeDeploymentTool\m365.xml"

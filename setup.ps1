@@ -1,10 +1,9 @@
 ## TODO ##
-#adobe
-#mouse settings
-#ps7 as default
-#clean start menu
 #home folders
 #link shell extension - VS2017 Sp1 Redis
+# Not in use
+#Set-DesktopIconsHidden
+#Install-Choco
 
 # Import Module Files
 Write-Output "Importing Modules..."
@@ -12,6 +11,7 @@ Import-Module ".\modules\core-functions.psm1"
 Import-Module ".\modules\computer-functions.psm1"
 Import-Module ".\modules\user-functions.psm1"
 Import-Module ".\modules\app-functions.psm1"
+Import-Module ".\modules\folder-paths.psm1"
 Import-Module BitsTransfer
 
 # Start Transcript
@@ -24,14 +24,14 @@ Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process' -Force
 # Create some folders I use
 Add-AdditionalFolders
 
-# Set Networks to Private=
+# Set Networks to Private
 Set-NetworkTypes
+
+# Set Mouse  options
+Set-MouseOptions
 
 # Set File Explorer options
 Set-ExplorerOptions
-
-# Hide all Desktop Icons
-Set-DesktopIconsHidden
 
 # Remove Default Programs
 Remove-WindowsBloatApps
@@ -42,20 +42,20 @@ Move-HomeFolders
 # Restart Explorer
 Restart-Explorer
 
+# Enable Windows Features
+Enable-HyperV
+
 # Install WSL2 with Debian
 Install-WSL2
 
 # Install My Apps with Winget
 Install-MyAppsWinget
 
+# Instal Beacn Software
+Install-Beacn
+
 # Install LG TV Companion App
 Install-LGTVCompanion
-
-# Install Choco
-#Install-Choco
-
-# Enable Windows Features
-Enable-HyperV
 
 # Reload PATH from Environment Variables
 Reset-Path
