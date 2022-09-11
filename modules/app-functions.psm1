@@ -6,42 +6,34 @@ Function Get-LatestFileFromGitHubRepo {
         [Parameter(Mandatory)]
         [string]$extension
     )
-        $releases_url = "https://api.github.com/repos/$repo/releases"
+    
+    $releases_url = "https://api.github.com/repos/$repo/releases"
     $releases = Invoke-RestMethod -uri "$($releases_url)"
-    $file = $releases | Where-Object { $_.target_commitish.StartsWith("master") -and $_.assets.browser_download_url -match ".*$extension$"} | Sort-Object -Property assets.updated_at | Select-Object @{N='link';E={$_.assets.browser_download_url}} -First 1
-    return $file.link
-}
-
-Function Install-Choco {
-    # Setup Chocolatey Package Manager
-    Write-Output "Installing Chocolatey Package Manager..." `n
-    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+    $file = $releases | Where-Object {$_.prerelease -ne "false" -and $_.assets.browser_download_url -match ".*$extension$"} | Sort-Object -Property assets.updated_at | Select-Object @{N='link';E={$_.assets.browser_download_url}} -First 1 
+    return $file.link | Where-Object {$_ -match ".*$extension$"}
 }
 
 Function Install-Beacn {
     Write-Output "Installing BEACN software..." `n
-    $link = "https://beacn-app-public-download.s3.us-west-1.amazonaws.com/BEACN+Setup+V1.0.238.0.exe"
+    $url = "https://beacn-app-public-download.s3.us-west-1.amazonaws.com/BEACN+Setup+V1.0.238.0.exe"
     $path = ".\app-files\BEACN+Setup+V1.0.238.0.exe"
-    Invoke-WebRequest -Uri $link -OutFile $path
+    Start-BitsTransfer $url $path
     Start-Process -FilePath $path -Wait
-    Remove-Item -Path $path
 }
 
+Function Install-LGTVCompanion {
+    Write-Output "Installing LG TV Companion..." `n
+    $url = Get-LatestFileFromGitHubRepo -repo "JPersson77/LGTVCompanion" -extension ".msi"
+    $path = ".\app-files\lgtv.msi"
+    Start-BitsTransfer $url $path
+    Start-Process -FilePath $path -Wait
+}
 
 Function Install-Office {
     $path = "C:\Program Files\OfficeDeploymentTool\setup.exe"
     Copy-Item ".\app-files\odt\m365.xml" -Destination "C:\Program Files\OfficeDeploymentTool\m365.xml"
     Start-Process -FilePath $path -ArgumentList "/download m365.xml" -Wait
     Start-Process -FilePath $path -ArgumentList "/configure m365.xml" -Wait
-}
-
-Function Install-LGTVCompanion {
-    Write-Output "Installing LG TV Companion..." `n
-    $link = Get-LatestFileFromGitHubRepo -repo "JPersson77/LGTVCompanion" -extension ".msi"
-    $path = ".\app-files\lgtv.msi"
-    Invoke-WebRequest -Uri $link -OutFile $path
-    Start-Process -FilePath $path -Wait
-    Remove-Item -Path $path
 }
 
 Function Install-WSL2 {
@@ -89,4 +81,10 @@ Function Remove-WindowsBloatApps {
     Get-AppxPackage *MicrosoftStickyNotes* | Remove-AppxPackage # Sticky Notes
     Get-AppxPackage *GetHelp* | Remove-AppxPackage # Get Help
     Get-AppxPackage *WindowsFeedbackHub* | Remove-AppxPackage # Feedback Hub
+}
+
+Function Install-Choco {
+    # Setup Chocolatey Package Manager
+    Write-Output "Installing Chocolatey Package Manager..." `n
+    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 }

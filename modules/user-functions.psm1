@@ -20,6 +20,23 @@ Function Set-ExplorerOptions {
     Set-ItemProperty $key "AutoCheckSelect" 1               # Show check boxes in explorer
     Set-ItemProperty $key "DontPrettyPath" 1                # Keep user path case
     Set-ItemProperty $key "MultiTaskingAltTabFilter" 3      # Alt Tab to Windows only, no Edge Tabs
+    $key = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer"
+    Set-ItemProperty $key "ShowRecent" 0                    # Hide recent files in quick access
+    Set-ItemProperty $key "ShowFrequent" 0                  # Hide frequent folder in quick access
+}
+
+# Set Theme Options 
+Function Set-ThemeOptions {
+    Write-Output "Setting Theme Options..." `n
+    $key = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+    Set-ItemProperty $key "AppsUseLightTheme" 0             # Set to Dark 
+    Set-ItemProperty $key "ColorPrevalence" 0               # Set to Dark
+    Set-ItemProperty $key "SystemUsesLightTheme" 0          # Set to Dark
+    $key = "HKCU:\ControlPanel\Desktop"
+    $bkgrnd = "C:\Users\alec-hs\OneDrive\Documents\Backgrounds + Avatars\Other\Abstract\AbstractTBW1.png"
+    attrib.exe $bkgrnd +P /s
+    Set-ItemProperty $key "WallPaper" $bkgrnd
+    RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
 }
 
 # Set Mouse Options in Registry to disable acceleration
@@ -40,7 +57,7 @@ Function Set-DesktopIconsHidden {
 # Move home folders to OneDrive
 Function Move-HomeFolders {
    $hostname = $env:computername
-   $path = "$env:userprofile\OneDrive\Computers\$hostname"
+   $path = "%USERPROFILE%\OneDrive\Computers\$hostname"
    $folders = "Desktop","Documents","Music","Pictures","Videos"
 
    ForEach ($folder in $folders) {
