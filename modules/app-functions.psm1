@@ -81,6 +81,10 @@ Function Remove-WindowsBloatApps {
     Get-AppxPackage *MicrosoftStickyNotes* | Remove-AppxPackage # Sticky Notes
     Get-AppxPackage *GetHelp* | Remove-AppxPackage # Get Help
     Get-AppxPackage *WindowsFeedbackHub* | Remove-AppxPackage # Feedback Hub
+    Get-AppxPackage *MicrosoftTeams* | Remove-AppxPackage # Remove Teams Consumer
+    Get-AppxPackage *PowerAutomateDesktop* | Remove-AppxPackage # Remove Power Automate Desktop
+    Get-AppxPackage *WindowsSoundRecorder* | Remove-AppxPackage # Remove Sound Recorder
+
 }
 
 Function Install-Choco {
