@@ -1,6 +1,5 @@
 ## TODO ##
 #adobe
-#LG TV Companion
 #mouse settings
 #ps7 as default
 #clean start menu
@@ -49,6 +48,9 @@ Install-WSL2
 # Install My Apps with Winget
 Install-MyAppsWinget
 
+# Install LG TV Companion App
+Install-LGTVCompanion
+
 # Install Choco
 #Install-Choco
 
@@ -78,3 +80,5 @@ Show-ScriptEnding
 
 # Restart PC
 Restart-Computer
+
+

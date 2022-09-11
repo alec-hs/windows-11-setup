@@ -1,3 +1,17 @@
+Function Get-LatestFileFromGitHubRepo {
+    param(
+        [Parameter(Mandatory)]
+        [string]$repo,
+    
+        [Parameter(Mandatory)]
+        [string]$extension
+    )
+        $releases_url = "https://api.github.com/repos/$repo/releases"
+    $releases = Invoke-RestMethod -uri "$($releases_url)"
+    $file = $releases | Where-Object { $_.target_commitish.StartsWith("master") -and $_.assets.browser_download_url -match ".*$extension$"} | Sort-Object -Property assets.updated_at | Select-Object @{N='link';E={$_.assets.browser_download_url}} -First 1
+    return $file.link
+}
+
 Function Install-Choco {
     # Setup Chocolatey Package Manager
     Write-Output "Installing Chocolatey Package Manager..." `n
@@ -9,6 +23,15 @@ Function Install-Office {
     Copy-Item ".\app-files\odt\m365.xml" -Destination "C:\Program Files\OfficeDeploymentTool\m365.xml"
     Start-Process -FilePath $path -ArgumentList "/download m365.xml" -Wait
     Start-Process -FilePath $path -ArgumentList "/configure m365.xml" -Wait
+}
+
+Function Install-LGTVCompanion {
+    Write-Output "Installing LG TV Companion..." `n
+    $link = Get-LatestFileFromGitHubRepo -repo "JPersson77/LGTVCompanion" -extension ".msi"
+    $path = ".\app-files\lgtv.msi"
+    Invoke-WebRequest -Uri $link -OutFile $path
+    Start-Process -FilePath $path -Wait
+    Remove-Item -Path $path
 }
 
 Function Install-WSL2 {
