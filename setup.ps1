@@ -24,14 +24,14 @@ Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process' -Force
 # Create some folders I use
 Add-AdditionalFolders
 
-# Set Networks to Private
-Set-NetworkTypes
-
 # Set Mouse  options
 Set-MouseOptions
 
 # Set File Explorer options
 Set-ExplorerOptions
+
+# Set Theming
+Set-ThemeOptions
 
 # Remove Default Programs
 Remove-WindowsBloatApps
@@ -41,12 +41,6 @@ Move-HomeFolders
 
 # Restart Explorer
 Restart-Explorer
-
-# Enable Windows Features
-Enable-HyperV
-
-# Install WSL2 with Debian
-Install-WSL2
 
 # Install My Apps with Winget
 Install-MyAppsWinget
@@ -60,11 +54,26 @@ Install-LGTVCompanion
 # Reload PATH from Environment Variables
 Reset-Path
 
-# Delete Desktop Shortcuts
-Remove-DesktopShortcuts
-
 # Install dotfiles
 Install-Dotfiles
+
+# Run as Admin Section
+Start-ElevatedCode {
+  Import-Module ".\modules\computer-functions.psm1"
+  Import-Module ".\modules\app-functions.psm1"
+
+  # Set Networks to Private
+  Set-NetworkTypes
+
+  # Enable Windows Features
+  Enable-HyperV
+
+  # Install WSL2 with Debian
+  Install-WSL2
+}
+
+# Delete Desktop Shortcuts
+Remove-DesktopShortcuts
 
 # Restart explorer
 Restart-Explorer
@@ -80,5 +89,3 @@ Show-ScriptEnding
 
 # Restart PC
 Restart-Computer
-
-

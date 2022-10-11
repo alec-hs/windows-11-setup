@@ -32,11 +32,11 @@ Function Set-ThemeOptions {
     Set-ItemProperty $key "AppsUseLightTheme" 0             # Set to Dark 
     Set-ItemProperty $key "ColorPrevalence" 0               # Set to Dark
     Set-ItemProperty $key "SystemUsesLightTheme" 0          # Set to Dark
-    $key = "HKCU:\ControlPanel\Desktop"
+    # Update Background - will update on reboot
+    $key = "HKCU:\Control Panel\Desktop"
     $bkgrnd = "C:\Users\alec-hs\OneDrive\Documents\Backgrounds + Avatars\Other\Abstract\AbstractTBW1.png"
     attrib.exe $bkgrnd +P /s
     Set-ItemProperty $key "WallPaper" $bkgrnd
-    RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
 }
 
 # Set Mouse Options in Registry to disable acceleration

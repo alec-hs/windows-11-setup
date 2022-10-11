@@ -84,7 +84,6 @@ Function Remove-WindowsBloatApps {
     Get-AppxPackage *MicrosoftTeams* | Remove-AppxPackage # Remove Teams Consumer
     Get-AppxPackage *PowerAutomateDesktop* | Remove-AppxPackage # Remove Power Automate Desktop
     Get-AppxPackage *WindowsSoundRecorder* | Remove-AppxPackage # Remove Sound Recorder
-
 }
 
 Function Install-Choco {

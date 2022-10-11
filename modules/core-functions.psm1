@@ -41,3 +41,8 @@ Function Show-ScriptEnding {
     Write-Output " `n### Script Complete ###`n`nLog can be found here: .\setup.log`n`n### PC will now reboot ###"
     Pause
 } 
+
+Function Start-ElevatedCode {
+  param([ScriptBlock]$Code)
+  Start-Process -FilePath powershell.exe -Verb RunAs -ArgumentList $Code
+}
