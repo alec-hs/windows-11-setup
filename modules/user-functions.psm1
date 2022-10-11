@@ -56,8 +56,9 @@ Function Set-DesktopIconsHidden {
 
 # Move home folders to OneDrive
 Function Move-HomeFolders {
-   $hostname = $env:computername
-   $path = "%USERPROFILE%\OneDrive\Computers\$hostname"
+   $hostname = $env:computername.ToLower()
+   $user = $env:username
+   $path = "C:\Users\$user\OneDrive\Computers\$hostname"
    $folders = "Desktop","Documents","Music","Pictures","Videos"
 
    ForEach ($folder in $folders) {
@@ -69,10 +70,11 @@ Function Move-HomeFolders {
 # Create additional folders and pin to quick access
 Function Add-AdditionalFolders {
     New-Item -Path "C:\" -Name "Temp" -ItemType "Directory" -Force
-    New-Item -Path $env:USERPROFILE -Name "Source" -ItemType "Directory" -Force
+    $srcPath = [Environment]::GetFolderPath("MyDocuments")
+    New-Item -Path $srcPath -Name "Source" -ItemType "Directory" -Force
     $o = New-Object -ComObject Shell.Application
     $o.NameSpace("C:\Temp").Self.InvokeVerb("pintohome")
-    $o.NameSpace("$env:USERPROFILE\Source").Self.InvokeVerb("pintohome")
+    $o.NameSpace("$srcPath\Source").Self.InvokeVerb("pintohome")
 }
 
 # Setup dotfile repo
