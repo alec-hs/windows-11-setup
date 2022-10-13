@@ -19,11 +19,11 @@ Function Reset-Path {
 # Removes Script Related Files
 Function Remove-ScriptFiles {
     Write-Output "Removing files related to this script..."
-    Remove-Item .\app-files -Recurse -Force
-    Remove-Item .\modules -Recurse -Force
-    Remove-Item .\README.md -Force
-    Remove-Item .\setup.ps1 -Force
-    Remove-Item .\LICENSE -Force
+    Remove-Item .\app-files -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item .\modules -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item .\README.md -Force -ErrorAction SilentlyContinue
+    Remove-Item .\setup.ps1 -Force -ErrorAction SilentlyContinue
+    Remove-Item .\LICENSE -Force -ErrorAction SilentlyContinue
 }
 
 Function Test-CommandExists {
@@ -42,7 +42,14 @@ Function Show-ScriptEnding {
     Pause
 } 
 
+# Allow code block to run as admin - note block cannot contain double quotes must use single quotes
 Function Start-ElevatedCode {
-  param([ScriptBlock]$Code)
-  Start-Process -FilePath powershell.exe -Verb RunAs -ArgumentList $Code
+    param([string]$file)
+    Start-Process PowerShell -Verb RunAs "-NoExit -ExecutionPolicy Bypass -Command `"cd '$pwd'; & '$file';`"" -Wait
+}
+
+Function Stop-ElevatedCode {
+    Write-Output "Elevated code completed, exiting in 10 secs..."
+    Start-Sleep -Seconds 10
+    Exit
 }

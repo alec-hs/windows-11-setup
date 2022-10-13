@@ -36,6 +36,14 @@ Function Install-Office {
     Start-Process -FilePath $path -ArgumentList "/configure m365.xml" -Wait
 }
 
+Function Install-VCRedist17 {
+    Write-Output "Installing Visual C++ Redistributable 2017..." `n
+    $url = "https://aka.ms/vs/17/release/vc_redist.x64.exe"
+    $path = ".\app-files\vc_redist.x64.exe"
+    Start-BitsTransfer $url $path
+    Start-Process -FilePath $path -Wait
+}
+
 Function Install-WSL2 {
     wsl --install -d Debian
 }
@@ -84,6 +92,7 @@ Function Remove-WindowsBloatApps {
     Get-AppxPackage *MicrosoftTeams* | Remove-AppxPackage # Remove Teams Consumer
     Get-AppxPackage *PowerAutomateDesktop* | Remove-AppxPackage # Remove Power Automate Desktop
     Get-AppxPackage *WindowsSoundRecorder* | Remove-AppxPackage # Remove Sound Recorder
+    Get-AppxPackage *Microsoft.BingFinance* | Remove-AppxPackage # Remove Bing Finance
 }
 
 Function Install-Choco {

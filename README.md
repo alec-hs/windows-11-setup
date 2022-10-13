@@ -8,7 +8,7 @@ How to use:
 2. Setup User Account
 3. Login
 4. Download and extract the repo
-5. Run Powershell as Admin
+5. Run Powershell as normal user
 6. Execute
 
    ```powershell

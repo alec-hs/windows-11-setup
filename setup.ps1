@@ -1,9 +1,7 @@
-## TODO ##
-#home folders
-#link shell extension - VS2017 Sp1 Redis
-# Not in use
-#Set-DesktopIconsHidden
-#Install-Choco
+## Functions Not in Use ##
+# Set-DesktopIconsHidden
+# Install-Choco
+# Install-Dotfiles
 
 # Import Module Files
 Write-Output "Importing Modules..."
@@ -42,6 +40,9 @@ Move-HomeFolders
 # Restart Explorer
 Restart-Explorer
 
+# Install VC Redist 2017
+Install-VCRedist17
+
 # Install My Apps with Winget
 Install-MyAppsWinget
 
@@ -54,29 +55,12 @@ Install-LGTVCompanion
 # Reload PATH from Environment Variables
 Reset-Path
 
-# Install dotfiles
-Install-Dotfiles
-
-# Run as Admin Section
-Start-ElevatedCode {
-  Import-Module ".\modules\computer-functions.psm1"
-  Import-Module ".\modules\app-functions.psm1"
-
-  # Set Networks to Private
-  Set-NetworkTypes
-
-  # Enable Windows Features
-  Enable-HyperV
-
-  # Install WSL2 with Debian
-  Install-WSL2
-}
-
-# Delete Desktop Shortcuts
-Remove-DesktopShortcuts
-
 # Restart explorer
 Restart-Explorer
+
+# Run as Admin Section
+Write-Output "Running things that require admin..."`n
+Start-ElevatedCode ".\elevated.ps1"
 
 # Delete script files
 Remove-ScriptFiles
