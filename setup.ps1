@@ -1,6 +1,4 @@
 ## Functions Not in Use ##
-# Set-DesktopIconsHidden
-# Install-Choco
 # Install-Dotfiles
 
 # Import Module Files
@@ -12,64 +10,135 @@ Import-Module ".\modules\app-functions.psm1"
 Import-Module ".\modules\folder-paths.psm1"
 Import-Module BitsTransfer
 
-# Start Transcript
-Start-Transcript -Path ".\setup.log"
+# Start Transcript with timestamp
+$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+Start-Transcript -Path ".\setup_$timestamp.log"
 
-# Set execution policy to allow online PS scripts for this session
-Write-Output "Setting Execution Policy for Session..."`n
-Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process' -Force
+# Function to verify module imports
+function Test-ModuleImports {
+    $requiredModules = @(
+        "core-functions",
+        "computer-functions",
+        "user-functions",
+        "app-functions",
+        "folder-paths"
+    )
+    
+    foreach ($module in $requiredModules) {
+        if (-not (Get-Module -Name $module)) {
+            throw "Required module '$module' was not imported successfully"
+        }
+    }
+}
 
-# Create some folders I use
-Add-AdditionalFolders
+# Function to handle script cleanup
+function Invoke-ScriptCleanup {
+    param (
+        [string]$ErrorMessage
+    )
+    
+    Write-Error $ErrorMessage
+    Stop-Transcript
+    Show-ScriptEnding
+    exit 1
+}
 
-# Set Mouse  options
-Set-MouseOptions
+try {
+    # Set execution policy to allow online PS scripts for this session
+    Write-Output "Setting Execution Policy for Session..."`n
+    if ((Get-ExecutionPolicy -Scope Process) -ne 'Bypass') {
+        Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process' -Force
+    }
 
-# Set File Explorer options
-Set-ExplorerOptions
+    # Import Module Files with progress tracking
+    Write-Output "Importing Modules..."
+    $modules = @(
+        ".\modules\core-functions.psm1",
+        ".\modules\computer-functions.psm1",
+        ".\modules\user-functions.psm1",
+        ".\modules\app-functions.psm1",
+        ".\modules\folder-paths.psm1"
+    )
+    
+    for ($i = 0; $i -lt $modules.Count; $i++) {
+        $module = $modules[$i]
+        Write-Progress -Activity "Importing Modules" -Status "Importing $module" -PercentComplete (($i + 1) / $modules.Count * 100)
+        Import-Module $module -ErrorAction Stop
+    }
+    Write-Progress -Activity "Importing Modules" -Completed
+    
+    # Verify all modules were imported
+    Test-ModuleImports
+    
+    # Import BitsTransfer
+    Import-Module BitsTransfer
 
-# Set Theming
-Set-ThemeOptions
+    # Create some folders I use
+    Write-Output "Creating additional folders..."`n
+    Add-AdditionalFolders
 
-# Remove Default Programs
-Remove-WindowsBloatApps
+    # Set Mouse options
+    Write-Output "Configuring mouse settings..."`n
+    Set-MouseOptions
 
-# Move Home Folders to OneDrive
-Move-HomeFolders
+    # Set File Explorer options
+    Write-Output "Configuring File Explorer settings..."`n
+    Set-ExplorerOptions
 
-# Restart Explorer
-Restart-Explorer
+    # Set Theming
+    Write-Output "Configuring theme settings..."`n
+    Set-ThemeOptions
 
-# Install VC Redist 2017
-Install-VCRedist17
+    # Remove Default Programs
+    Write-Output "Removing bloatware..."`n
+    Remove-WindowsBloatApps
 
-# Install My Apps with Winget
-Install-MyAppsWinget
+    # Move Home Folders to OneDrive
+    Write-Output "Moving home folders to OneDrive..."`n
+    Move-HomeFolders
 
-# Instal Beacn Software
-Install-Beacn
+    # Restart Explorer
+    Restart-Explorer
 
-# Install LG TV Companion App
-Install-LGTVCompanion
+    # Install VC Redist 2017
+    Write-Output "Installing Visual C++ Redistributable 2017..."`n
+    Install-VCRedist17
 
-# Reload PATH from Environment Variables
-Reset-Path
+    # Install My Apps with Winget
+    Write-Output "Installing applications via Winget..."`n
+    Install-MyAppsWinget
 
-# Restart explorer
-Restart-Explorer
+    # Install Beacn Software
+    Write-Output "Installing Beacn software..."`n
+    Install-Beacn
 
-# Run as Admin Section
-Write-Output "Running things that require admin..."`n
-Start-ElevatedCode ".\elevated.ps1"
+    # Install LG TV Companion App
+    Write-Output "Installing LG TV Companion..."`n
+    Install-LGTVCompanion
 
-# Delete script files
-Remove-ScriptFiles
+    # Reload PATH from Environment Variables
+    Reset-Path
 
-# End Transcript
-Stop-Transcript
+    # Restart explorer
+    Restart-Explorer
 
-# End Script
-Show-ScriptEnding
+    # Run as Admin Section
+    Write-Output "Running elevated tasks..."`n
+    Start-ElevatedCode ".\elevated.ps1"
 
-# Restart PC
-Restart-Computer
+    # Delete script files
+    Write-Output "Cleaning up script files..."`n
+    Remove-ScriptFiles
+
+    # End Transcript
+    Stop-Transcript
+
+    # End Script
+    Show-ScriptEnding
+
+    # Restart PC
+    Restart-Computer
+}
+catch {
+    Invoke-ScriptCleanup "An error occurred during script execution: $_"
+}

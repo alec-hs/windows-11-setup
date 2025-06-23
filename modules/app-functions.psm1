@@ -1,24 +1,84 @@
-Function Get-LatestFileFromGitHubRepo {
+Function Write-Log {
     param(
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory=$true)]
+        [string]$Message,
+        
+        [Parameter(Mandatory=$false)]
+        [ValidateSet('Info', 'Warning', 'Error')]
+        [string]$Level = 'Info'
+    )
+    
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $logMessage = "[$timestamp] [$Level] $Message"
+    Write-Output $logMessage
+}
+
+Function Get-LatestFileFromGitHubRepo {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
         [string]$repo,
     
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
         [string]$extension
     )
     
-    $releases_url = "https://api.github.com/repos/$repo/releases"
-    $releases = Invoke-RestMethod -uri "$($releases_url)"
-    $file = $releases | Where-Object {$_.prerelease -ne "false" -and $_.assets.browser_download_url -match ".*$extension$"} | Sort-Object -Property assets.updated_at | Select-Object @{N='link';E={$_.assets.browser_download_url}} -First 1 
-    return $file.link | Where-Object {$_ -match ".*$extension$"}
+    try {
+        Write-Log "Fetching latest release from GitHub repository: $repo"
+        $releases_url = "https://api.github.com/repos/$repo/releases"
+        $releases = Invoke-RestMethod -Uri $releases_url -ErrorAction Stop
+        
+        $file = $releases | Where-Object {
+            $_.prerelease -ne "false" -and 
+            $_.assets.browser_download_url -match ".*$extension$"
+        } | Sort-Object -Property assets.updated_at | 
+        Select-Object @{N='link';E={$_.assets.browser_download_url}} -First 1 
+        
+        if (-not $file) {
+            throw "No matching files found with extension: $extension"
+        }
+        
+        return $file.link | Where-Object {$_ -match ".*$extension$"}
+    }
+    catch {
+        Write-Log "Failed to fetch latest file from GitHub: $_" -Level Error
+        throw
+    }
 }
 
 Function Install-Beacn {
-    Write-Output "Installing BEACN software..." `n
-    $url = "https://beacn-app-public-download.s3.us-west-1.amazonaws.com/BEACN+Setup+V1.0.238.0.exe"
-    $path = ".\app-files\BEACN+Setup+V1.0.238.0.exe"
-    Start-BitsTransfer $url $path
-    Start-Process -FilePath $path -Wait
+    [CmdletBinding()]
+    param()
+    
+    try {
+        Write-Log "Starting BEACN software installation"
+        $url = "https://beacn-app-public-download.s3.us-west-1.amazonaws.com/BEACN+Setup+V1.0.238.0.exe"
+        $path = Join-Path $PSScriptRoot "app-files\BEACN+Setup+V1.0.238.0.exe"
+        
+        # Ensure directory exists
+        $directory = Split-Path -Parent $path
+        if (-not (Test-Path $directory)) {
+            New-Item -ItemType Directory -Path $directory -Force | Out-Null
+        }
+        
+        Write-Log "Downloading BEACN installer"
+        Start-BitsTransfer -Source $url -Destination $path -ErrorAction Stop
+        
+        Write-Log "Running BEACN installer"
+        $process = Start-Process -FilePath $path -Wait -PassThru -ErrorAction Stop
+        
+        if ($process.ExitCode -ne 0) {
+            throw "Installation failed with exit code: $($process.ExitCode)"
+        }
+        
+        Write-Log "BEACN software installation completed successfully"
+    }
+    catch {
+        Write-Log "Failed to install BEACN software: $_" -Level Error
+        throw
+    }
 }
 
 Function Install-LGTVCompanion {
@@ -49,54 +109,102 @@ Function Install-WSL2 {
 }
 
 Function Install-MyAppsWinget {
-    # Install Autoupdating Apps with WinGet
-    Write-Output "Installing desktop apps..." `n
-
-    $wingetApps = Import-CSV ./app-files/winget-apps.csv
-
-    foreach ($app in $wingetApps) {
-        switch ($app.Scope) {
-            'd' {$scope = ''}
-            'm' {$scope = '--scope "machine"'}
-            'u' {$scope = '--scope "user"'}
+    [CmdletBinding()]
+    param()
+    
+    try {
+        Write-Log "Starting WinGet app installations"
+        $wingetAppsPath = Join-Path $PSScriptRoot "app-files/winget-apps.csv"
+        
+        if (-not (Test-Path $wingetAppsPath)) {
+            throw "WinGet apps CSV file not found at: $wingetAppsPath"
         }
-
-        switch ($app.Interactive) {
-            'n' {$interactive = ''}
-            'y' {$interactive = '-i'}
+        
+        $wingetApps = Import-CSV $wingetAppsPath -ErrorAction Stop
+        
+        foreach ($app in $wingetApps) {
+            Write-Log "Installing app: $($app.App)"
+            
+            $scope = switch ($app.Scope) {
+                'd' { '' }
+                'm' { '--scope "machine"' }
+                'u' { '--scope "user"' }
+                default { throw "Invalid scope value: $($app.Scope)" }
+            }
+            
+            $interactive = switch ($app.Interactive) {
+                'n' { '' }
+                'y' { '-i' }
+                default { throw "Invalid interactive value: $($app.Interactive)" }
+            }
+            
+            $source = switch ($app.Source) {
+                's' { '-s msstore' }
+                'w' { '-s winget' }
+                default { throw "Invalid source value: $($app.Source)" }
+            }
+            
+            $appName = $app.App
+            $command = "winget install `"$appName`" $scope $interactive $source --accept-package-agreements --accept-source-agreements"
+            
+            Write-Log "Executing command: $command"
+            $process = Start-Process -FilePath "winget" -ArgumentList $command -Wait -PassThru -ErrorAction Stop
+            
+            if ($process.ExitCode -ne 0) {
+                Write-Log "Failed to install $appName" -Level Warning
+            }
+            else {
+                Write-Log "Successfully installed $appName"
+            }
         }
-
-        switch ($app.Source) {
-            's' {$source = '-s msstore'}
-            'w' {$source = '-s winget'}
-        }
-
-        $appName = $app.App
-        Invoke-Expression "winget install `"$appName`" $scope $interactive $source --accept-package-agreements --accept-source-agreements"
+    }
+    catch {
+        Write-Log "Failed during WinGet app installation: $_" -Level Error
+        throw
     }
 }
 
 Function Remove-WindowsBloatApps {
-    Get-AppxPackage *ZuneMusic* | Remove-AppxPackage # Groove Music
-    Get-AppxPackage *WindowsMaps* | Remove-AppxPackage # Maps
-    Get-AppxPackage *WindowsSoundRecorder* | Remove-AppxPackage # Voice Recorder
-    Get-AppxPackage *MicrosoftSolitaireCollection* | Remove-AppxPackage # Solitaire Collection
-    Get-AppxPackage *BingWeather* | Remove-AppxPackage # Weather
-    Get-AppxPackage *BingNews* | Remove-AppxPackage # MS News
-    Get-AppxPackage *Getstarted* | Remove-AppxPackage # Get Started
-    Get-AppxPackage *ZuneVideo* | Remove-AppxPackage # Films & TV
-    Get-AppxPackage *windowscommunicationsapps* | Remove-AppxPackage # Mail and Calender
-    Get-AppxPackage *MicrosoftStickyNotes* | Remove-AppxPackage # Sticky Notes
-    Get-AppxPackage *GetHelp* | Remove-AppxPackage # Get Help
-    Get-AppxPackage *WindowsFeedbackHub* | Remove-AppxPackage # Feedback Hub
-    Get-AppxPackage *MicrosoftTeams* | Remove-AppxPackage # Remove Teams Consumer
-    Get-AppxPackage *PowerAutomateDesktop* | Remove-AppxPackage # Remove Power Automate Desktop
-    Get-AppxPackage *WindowsSoundRecorder* | Remove-AppxPackage # Remove Sound Recorder
-    Get-AppxPackage *Microsoft.BingFinance* | Remove-AppxPackage # Remove Bing Finance
-}
-
-Function Install-Choco {
-    # Setup Chocolatey Package Manager
-    Write-Output "Installing Chocolatey Package Manager..." `n
-    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+    [CmdletBinding()]
+    param()
+    
+    try {
+        Write-Log "Starting removal of Windows bloatware apps"
+        
+        $appsToRemove = @(
+            @{Name = "*ZuneMusic*"; Description = "Groove Music"},
+            @{Name = "*WindowsMaps*"; Description = "Maps"},
+            @{Name = "*WindowsSoundRecorder*"; Description = "Voice Recorder"},
+            @{Name = "*MicrosoftSolitaireCollection*"; Description = "Solitaire Collection"},
+            @{Name = "*BingWeather*"; Description = "Weather"},
+            @{Name = "*BingNews*"; Description = "MS News"},
+            @{Name = "*Getstarted*"; Description = "Get Started"},
+            @{Name = "*ZuneVideo*"; Description = "Films & TV"},
+            @{Name = "*windowscommunicationsapps*"; Description = "Mail and Calendar"},
+            @{Name = "*MicrosoftStickyNotes*"; Description = "Sticky Notes"},
+            @{Name = "*GetHelp*"; Description = "Get Help"},
+            @{Name = "*WindowsFeedbackHub*"; Description = "Feedback Hub"},
+            @{Name = "*MicrosoftTeams*"; Description = "Teams Consumer"},
+            @{Name = "*PowerAutomateDesktop*"; Description = "Power Automate Desktop"},
+            @{Name = "*Microsoft.BingFinance*"; Description = "Bing Finance"}
+        )
+        
+        foreach ($app in $appsToRemove) {
+            Write-Log "Removing $($app.Description)"
+            $packages = Get-AppxPackage $app.Name
+            if ($packages) {
+                $packages | Remove-AppxPackage -ErrorAction Stop
+                Write-Log "Successfully removed $($app.Description)"
+            }
+            else {
+                Write-Log "No packages found for $($app.Description)" -Level Warning
+            }
+        }
+        
+        Write-Log "Completed removal of Windows bloatware apps"
+    }
+    catch {
+        Write-Log "Failed during bloatware removal: $_" -Level Error
+        throw
+    }
 }

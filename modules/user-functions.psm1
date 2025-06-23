@@ -1,84 +1,201 @@
+# User Functions Module for Windows 11 Setup
+# This module contains functions for customizing Windows 11 user settings
+
 # Remove Desktop Shortcuts
 Function Remove-DesktopShortcuts {
-    # check paths first
+    [CmdletBinding()]
+    param()
+    
     Write-Output "Removing Desktop shortcuts..." `n
-    $paths = @("C:\Users\$env:UserName\Desktop\*.lnk","C:\Users\Public\Desktop\*.lnk","C:\Users\$env:UserName\OneDrive\$env:ComputerName\Desktop\*.lnk")
-    $paths.ForEach({
-        if (Test-Path $_) {
-            Remove-Item $_ -Force
+    $paths = @(
+        "C:\Users\$env:UserName\Desktop\*.lnk",
+        "C:\Users\Public\Desktop\*.lnk",
+        "C:\Users\$env:UserName\OneDrive\$env:ComputerName\Desktop\*.lnk"
+    )
+    
+    foreach ($path in $paths) {
+        try {
+            if (Test-Path $path) {
+                Remove-Item $path -Force -ErrorAction Stop
+                Write-Verbose "Successfully removed shortcuts from $path"
+            }
         }
-    })
+        catch {
+            Write-Warning "Failed to remove shortcuts from $path : $_"
+        }
+    }
 }
 
 # Set Explorer Options in Registry
 Function Set-ExplorerOptions {
+    [CmdletBinding()]
+    param()
+    
     Write-Output "Setting File Explorer Options..." `n
-    $key = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
-    Set-ItemProperty $key "Hidden" 1                        # Show hidden file
-    Set-ItemProperty $key "HideFileExt" 0                   # Show file extensions
-    Set-ItemProperty $key "LaunchTo" 1                      # Launch Explorer to "This PC"
-    Set-ItemProperty $key "AutoCheckSelect" 1               # Show check boxes in explorer
-    Set-ItemProperty $key "DontPrettyPath" 1                # Keep user path case
-    Set-ItemProperty $key "MultiTaskingAltTabFilter" 3      # Alt Tab to Windows only, no Edge Tabs
-    $key = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer"
-    Set-ItemProperty $key "ShowRecent" 0                    # Hide recent files in quick access
-    Set-ItemProperty $key "ShowFrequent" 0                  # Hide frequent folder in quick access
+    try {
+        $key = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
+        $settings = @{
+            "Hidden" = 1                    # Show hidden files
+            "LaunchTo" = 1                  # Launch Explorer to "This PC"
+            "DontPrettyPath" = 1            # Keep user path case
+            "MultiTaskingAltTabFilter" = 3  # Alt Tab to Windows only, no Edge Tabs
+        }
+        
+        foreach ($setting in $settings.GetEnumerator()) {
+            Set-ItemProperty -Path $key -Name $setting.Key -Value $setting.Value -ErrorAction Stop
+            Write-Verbose "Set $($setting.Key) to $($setting.Value)"
+        }
+        
+        $key = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer"
+        Set-ItemProperty -Path $key -Name "ShowRecent" -Value 0 -ErrorAction Stop
+        Set-ItemProperty -Path $key -Name "ShowFrequent" -Value 0 -ErrorAction Stop
+    }
+    catch {
+        Write-Error "Failed to set Explorer options: $_"
+    }
 }
 
 # Set Theme Options 
 Function Set-ThemeOptions {
+    [CmdletBinding()]
+    param(
+        [Parameter()]
+        [string]$BackgroundPath
+    )
+    
     Write-Output "Setting Theme Options..." `n
-    $key = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
-    Set-ItemProperty $key "AppsUseLightTheme" 0             # Set to Dark 
-    Set-ItemProperty $key "ColorPrevalence" 0               # Set to Dark
-    Set-ItemProperty $key "SystemUsesLightTheme" 0          # Set to Dark
-    # Update Background - will update on reboot
-    $key = "HKCU:\Control Panel\Desktop"
-    $bkgrnd = "C:\Users\alec-hs\OneDrive\Documents\Backgrounds + Avatars\Other\Abstract\AbstractTBW1.png"
-    attrib.exe $bkgrnd +P /s
-    Set-ItemProperty $key "WallPaper" $bkgrnd
+    try {
+        $key = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+        $settings = @{
+            "AppsUseLightTheme" = 0
+            "ColorPrevalence" = 0
+            "SystemUsesLightTheme" = 0
+        }
+        
+        foreach ($setting in $settings.GetEnumerator()) {
+            Set-ItemProperty -Path $key -Name $setting.Key -Value $setting.Value -ErrorAction Stop
+            Write-Verbose "Set $($setting.Key) to $($setting.Value)"
+        }
+        
+        if ($BackgroundPath) {
+            $key = "HKCU:\Control Panel\Desktop"
+            if (Test-Path $BackgroundPath) {
+                attrib.exe $BackgroundPath +P /s
+                Set-ItemProperty -Path $key -Name "WallPaper" -Value $BackgroundPath -ErrorAction Stop
+                Write-Verbose "Set background to $BackgroundPath"
+            }
+            else {
+                Write-Warning "Background file not found at: $BackgroundPath"
+            }
+        }
+    }
+    catch {
+        Write-Error "Failed to set Theme options: $_"
+    }
 }
 
 # Set Mouse Options in Registry to disable acceleration
 Function Set-MouseOptions {
+    [CmdletBinding()]
+    param()
+    
     Write-Output "Setting Mouse options..." `n
-    $key = "HKCU:\Control Panel\Mouse"
-    Set-ItemProperty $key "MouseSpeed" 0
-    Set-ItemProperty $key "MouseThreshold1" 0
-    Set-ItemProperty $key "MouseThreshold2" 0
+    try {
+        $key = "HKCU:\Control Panel\Mouse"
+        $settings = @{
+            "MouseSpeed" = 0
+            "MouseThreshold1" = 0
+            "MouseThreshold2" = 0
+        }
+        
+        foreach ($setting in $settings.GetEnumerator()) {
+            Set-ItemProperty -Path $key -Name $setting.Key -Value $setting.Value -ErrorAction Stop
+            Write-Verbose "Set $($setting.Key) to $($setting.Value)"
+        }
+    }
+    catch {
+        Write-Error "Failed to set Mouse options: $_"
+    }
 }
 
 # Hide all icons from desktop
 Function Set-DesktopIconsHidden {
-	Write-Output "Hiding all icons from desktop..." `n
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideIcons" -Value 1
+    [CmdletBinding()]
+    param()
+    
+    Write-Output "Hiding all icons from desktop..." `n
+    try {
+        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideIcons" -Value 1 -ErrorAction Stop
+        Write-Verbose "Successfully hidden desktop icons"
+    }
+    catch {
+        Write-Error "Failed to hide desktop icons: $_"
+    }
 }
 
 # Move home folders to OneDrive
 Function Move-HomeFolders {
-   $hostname = $env:computername.ToLower()
-   $user = $env:username
-   $path = "C:\Users\$user\OneDrive\Computers\$hostname"
-   $folders = "Desktop","Documents","Music","Pictures","Videos"
+    [CmdletBinding()]
+    param(
+        [Parameter()]
+        [string]$OneDriveBasePath = "C:\Users\$env:USERNAME\OneDrive\Computers"
+    )
+    
+    try {
+        $hostname = $env:computername.ToLower()
+        $path = Join-Path $OneDriveBasePath $hostname
+        $folders = "Desktop","Documents","Music","Pictures","Videos"
 
-   ForEach ($folder in $folders) {
-    New-Item -Path "$path" -Name $folder -ItemType "Directory" -Force
-    Set-KnownFolderPath -KnownFolder $folder -Path "$path\$folder"
-   }   
+        foreach ($folder in $folders) {
+            $folderPath = Join-Path $path $folder
+            New-Item -Path $path -Name $folder -ItemType "Directory" -Force -ErrorAction Stop
+            Set-KnownFolderPath -KnownFolder $folder -Path $folderPath -ErrorAction Stop
+            Write-Verbose "Successfully moved $folder to $folderPath"
+        }
+    }
+    catch {
+        Write-Error "Failed to move home folders: $_"
+    }
 }
 
 # Create additional folders and pin to quick access
 Function Add-AdditionalFolders {
-    New-Item -Path "C:\" -Name "Temp" -ItemType "Directory" -Force
-    $srcPath = [Environment]::GetFolderPath("MyDocuments")
-    New-Item -Path $srcPath -Name "Source" -ItemType "Directory" -Force
-    $o = New-Object -ComObject Shell.Application
-    $o.NameSpace("C:\Temp").Self.InvokeVerb("pintohome")
-    $o.NameSpace("$srcPath\Source").Self.InvokeVerb("pintohome")
+    [CmdletBinding()]
+    param()
+    
+    try {
+        $tempPath = "C:\Temp"
+        $sourcePath = Join-Path [Environment]::GetFolderPath("MyDocuments") "Source"
+        
+        New-Item -Path "C:\" -Name "Temp" -ItemType "Directory" -Force -ErrorAction Stop
+        New-Item -Path $sourcePath -ItemType "Directory" -Force -ErrorAction Stop
+        
+        $shell = New-Object -ComObject Shell.Application
+        $shell.NameSpace($tempPath).Self.InvokeVerb("pintohome")
+        $shell.NameSpace($sourcePath).Self.InvokeVerb("pintohome")
+        
+        Write-Verbose "Successfully created and pinned additional folders"
+    }
+    catch {
+        Write-Error "Failed to create additional folders: $_"
+    }
 }
 
 # Setup dotfile repo
 Function Install-Dotfiles {
+    [CmdletBinding()]
+    param(
+        [Parameter()]
+        [string]$DotfilesUrl = "https://raw.githubusercontent.com/alec-hs/dotfiles/main/runOnce.ps1"
+    )
+    
     Write-Output "Installing dotfiles..." `n
-    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/alec-hs/dotfiles/main/runOnce.ps1'))
+    try {
+        $script = Invoke-WebRequest -Uri $DotfilesUrl -UseBasicParsing -ErrorAction Stop
+        Invoke-Expression $script.Content
+        Write-Verbose "Successfully installed dotfiles"
+    }
+    catch {
+        Write-Error "Failed to install dotfiles: $_"
+    }
 }
