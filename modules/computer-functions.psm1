@@ -84,5 +84,50 @@ function Enable-HyperV {
     }
 }
 
+function Set-PowerPlanHighPerformance {
+    [CmdletBinding()]
+    param()
+
+    process {
+        try {
+            Write-Verbose "Setting power plan to High performance..."
+
+            # Well-known GUID for High Performance power plan
+            $highPerfGuid = "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c"
+
+            # Verify the plan exists before activating
+            $planList = powercfg -list
+            if ($planList -match $highPerfGuid) {
+                powercfg -setactive $highPerfGuid
+                Write-Verbose "Power plan set to High performance"
+            }
+            else {
+                Write-Warning "High performance power plan not found; leaving current plan active"
+            }
+        }
+        catch {
+            Write-Error "Failed to set power plan: $_"
+            throw
+        }
+    }
+}
+
+function Enable-Hibernation {
+    [CmdletBinding()]
+    param()
+
+    process {
+        try {
+            Write-Verbose "Enabling hibernation..."
+            powercfg /h on
+            Write-Verbose "Hibernation enabled"
+        }
+        catch {
+            Write-Error "Failed to enable hibernation: $_"
+            throw
+        }
+    }
+}
+
 # Export the functions
-Export-ModuleMember -Function Set-NetworkTypes, Enable-HyperV
+Export-ModuleMember -Function Set-NetworkTypes, Enable-HyperV, Set-PowerPlanHighPerformance, Enable-Hibernation
