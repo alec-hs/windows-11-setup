@@ -1,18 +1,5 @@
-## Functions Not in Use ##
-# Install-Dotfiles
-
-# Import Module Files
-Write-Output "Importing Modules..."
-Import-Module ".\modules\core-functions.psm1"
-Import-Module ".\modules\computer-functions.psm1"
-Import-Module ".\modules\user-functions.psm1"
-Import-Module ".\modules\app-functions.psm1"
-Import-Module ".\modules\folder-paths.psm1"
-Import-Module BitsTransfer
-
-# Start Transcript with timestamp
-$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-Start-Transcript -Path ".\setup_$timestamp.log"
+# Script-level transcript path for cleanup and Show-ScriptEnding
+$script:transcriptPath = $null
 
 # Function to verify module imports
 function Test-ModuleImports {
@@ -38,8 +25,8 @@ function Invoke-ScriptCleanup {
     )
     
     Write-Error $ErrorMessage
-    Stop-Transcript
-    Show-ScriptEnding
+    if ($script:transcriptPath) { Stop-Transcript }
+    Show-ScriptEnding -LogPath $script:transcriptPath
     exit 1
 }
 
@@ -49,6 +36,10 @@ try {
     if ((Get-ExecutionPolicy -Scope Process) -ne 'Bypass') {
         Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process' -Force
     }
+
+    # Start Transcript with timestamp
+    $script:transcriptPath = ".\setup_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+    Start-Transcript -Path $script:transcriptPath
 
     # Import Module Files with progress tracking
     Write-Output "Importing Modules..."
@@ -93,16 +84,12 @@ try {
     Write-Output "Removing bloatware..."`n
     Remove-WindowsBloatApps
 
-    # Move Home Folders to OneDrive
-    Write-Output "Moving home folders to OneDrive..."`n
-    Move-HomeFolders
-
     # Restart Explorer
     Restart-Explorer
 
-    # Install VC Redist 2017
-    Write-Output "Installing Visual C++ Redistributable 2017..."`n
-    Install-VCRedist17
+    # Install VC Redist 2015-2022 (latest v14)
+    Write-Output "Installing Visual C++ Redistributable 2015-2022..."`n
+    Install-VCRedist
 
     # Install My Apps with Winget
     Write-Output "Installing applications via Winget..."`n
@@ -126,18 +113,37 @@ try {
     Write-Output "Running elevated tasks..."`n
     Start-ElevatedCode ".\elevated.ps1"
 
+    # End Transcript before cleanup so log is fully written
+    Stop-Transcript
+
     # Delete script files
     Write-Output "Cleaning up script files..."`n
     Remove-ScriptFiles
 
-    # End Transcript
-    Stop-Transcript
-
     # End Script
-    Show-ScriptEnding
+    Show-ScriptEnding -LogPath $script:transcriptPath
+
+    # Reminder for manual debloat tools
+    Write-Output ""
+    Write-Output "========================================"
+    Write-Output "OPTIONAL: Run Debloat Tools Now"
+    Write-Output "========================================"
+    Write-Output "You can run these debloat/privacy tools now in a separate terminal,"
+    Write-Output "or skip and run them after reboot."
+    Write-Output ""
+    Write-Output "1. Chris Titus Windows Utility:"
+    Write-Output "   https://christitus.com/windows-tool/"
+    Write-Output "   Run: irm christitus.com/win | iex"
+    Write-Output ""
+    Write-Output "2. Raphi.re Debloat Script:"
+    Write-Output "   https://debloat.raphi.re/"
+    Write-Output "   Run: irm debloat.raphi.re | iex"
+    Write-Output "========================================"
+    Write-Output ""
+    Read-Host "Press Enter to reboot when ready"
 
     # Restart PC
-    Restart-Computer
+    Restart-Computer -Force
 }
 catch {
     Invoke-ScriptCleanup "An error occurred during script execution: $_"
