@@ -100,9 +100,12 @@ Function Test-CommandExists {
 # End Script
 Function Show-ScriptEnding {
     [CmdletBinding()]
-    param()
+    param(
+        [string]$LogPath
+    )
     
-    Write-Output "`n### Script Complete ###`n`nLog can be found here: .\setup.log`n`n### PC will now reboot ###"
+    $logMessage = if ($LogPath) { "Log can be found here: $LogPath" } else { "Log can be found in the current directory (setup_*.log)" }
+    Write-Output "`n### Script Complete ###`n`n$logMessage`n`n### PC will now reboot ###"
     Pause
 }
 
