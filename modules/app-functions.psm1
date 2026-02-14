@@ -31,7 +31,7 @@ Function Get-LatestFileFromGitHubRepo {
         $releases = Invoke-RestMethod -Uri $releases_url -ErrorAction Stop
         
         $file = $releases | Where-Object {
-            $_.prerelease -ne "false" -and 
+            $_.prerelease -eq $false -and
             $_.assets.browser_download_url -match ".*$extension$"
         } | Sort-Object -Property assets.updated_at | 
         Select-Object @{N='link';E={$_.assets.browser_download_url}} -First 1 
@@ -54,8 +54,8 @@ Function Install-Beacn {
     
     try {
         Write-Log "Starting BEACN software installation"
-        $url = "https://beacn-app-public-download.s3.us-west-1.amazonaws.com/BEACN+Setup+V1.0.238.0.exe"
-        $path = Join-Path $PSScriptRoot "app-files\BEACN+Setup+V1.0.238.0.exe"
+        $url = "https://beacn-app-public-download.s3.us-west-1.amazonaws.com/BEACN+Setup+V1.2.62.0.exe"
+        $path = Join-Path $PSScriptRoot "app-files\BEACN+Setup+V1.2.62.0.exe"
         
         # Ensure directory exists
         $directory = Split-Path -Parent $path
@@ -82,11 +82,39 @@ Function Install-Beacn {
 }
 
 Function Install-LGTVCompanion {
-    Write-Output "Installing LG TV Companion..." `n
-    $url = Get-LatestFileFromGitHubRepo -repo "JPersson77/LGTVCompanion" -extension ".msi"
-    $path = ".\app-files\lgtv.msi"
-    Start-BitsTransfer $url $path
-    Start-Process -FilePath $path -Wait
+    [CmdletBinding()]
+    param()
+
+    try {
+        Write-Log "Starting LG TV Companion installation"
+        $url = Get-LatestFileFromGitHubRepo -repo "JPersson77/LGTVCompanion" -extension ".msi"
+
+        if (-not $url) {
+            throw "Failed to get download URL from GitHub"
+        }
+
+        $path = Join-Path $PSScriptRoot "app-files\lgtv.msi"
+
+        Write-Log "Downloading LG TV Companion from: $url"
+        Start-BitsTransfer -Source $url -Destination $path -ErrorAction Stop
+
+        if (-not (Test-Path $path)) {
+            throw "Download failed - file not found at: $path"
+        }
+
+        Write-Log "Running LG TV Companion installer"
+        $process = Start-Process -FilePath $path -Wait -PassThru -ErrorAction Stop
+
+        if ($process.ExitCode -ne 0) {
+            throw "Installation failed with exit code: $($process.ExitCode)"
+        }
+
+        Write-Log "LG TV Companion installation completed successfully"
+    }
+    catch {
+        Write-Log "Failed to install LG TV Companion: $_" -Level Error
+        throw
+    }
 }
 
 Function Install-Office {
@@ -96,16 +124,19 @@ Function Install-Office {
     Start-Process -FilePath $path -ArgumentList "/configure m365.xml" -Wait
 }
 
-Function Install-VCRedist17 {
-    Write-Output "Installing Visual C++ Redistributable 2017..." `n
-    $url = "https://aka.ms/vs/17/release/vc_redist.x64.exe"
+Function Install-VCRedist {
+    Write-Output "Installing Visual C++ Redistributable 2015-2022 (latest v14)..." `n
+    # Permalink for latest supported v14 (covers VS 2017, 2019, 2022) - see https://aka.ms/vcredist
+    $url = "https://aka.ms/vc14/vc_redist.x64.exe"
     $path = ".\app-files\vc_redist.x64.exe"
     Start-BitsTransfer $url $path
     Start-Process -FilePath $path -Wait
 }
 
 Function Install-WSL2 {
-    wsl --install -d Debian
+    [CmdletBinding()]
+    param()
+    wsl --install -d Debian --no-launch
 }
 
 Function Install-MyAppsWinget {
@@ -126,29 +157,36 @@ Function Install-MyAppsWinget {
             Write-Log "Installing app: $($app.App)"
             
             $scope = switch ($app.Scope) {
-                'd' { '' }
-                'm' { '--scope "machine"' }
-                'u' { '--scope "user"' }
+                'd' { @() }
+                'm' { @('--scope', 'machine') }
+                'u' { @('--scope', 'user') }
                 default { throw "Invalid scope value: $($app.Scope)" }
             }
-            
+
             $interactive = switch ($app.Interactive) {
-                'n' { '' }
-                'y' { '-i' }
+                'n' { @() }
+                'y' { @('-i') }
                 default { throw "Invalid interactive value: $($app.Interactive)" }
             }
-            
+
             $source = switch ($app.Source) {
-                's' { '-s msstore' }
-                'w' { '-s winget' }
+                's' { @('-s', 'msstore') }
+                'w' { @('-s', 'winget') }
                 default { throw "Invalid source value: $($app.Source)" }
             }
             
             $appName = $app.App
-            $command = "winget install `"$appName`" $scope $interactive $source --accept-package-agreements --accept-source-agreements"
-            
-            Write-Log "Executing command: $command"
-            $process = Start-Process -FilePath "winget" -ArgumentList $command -Wait -PassThru -ErrorAction Stop
+
+            # Build argument list as array for proper argument passing
+            $argList = @("install", $appName)
+            if ($scope.Count -gt 0) { $argList += $scope }
+            if ($interactive.Count -gt 0) { $argList += $interactive }
+            if ($source.Count -gt 0) { $argList += $source }
+            $argList += "--accept-package-agreements"
+            $argList += "--accept-source-agreements"
+
+            Write-Log "Executing: winget $($argList -join ' ')"
+            $process = Start-Process -FilePath "winget" -ArgumentList $argList -Wait -PassThru -ErrorAction Stop
             
             if ($process.ExitCode -ne 0) {
                 Write-Log "Failed to install $appName" -Level Warning
