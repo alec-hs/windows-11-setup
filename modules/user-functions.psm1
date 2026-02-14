@@ -36,6 +36,7 @@ Function Set-ExplorerOptions {
         $key = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
         $settings = @{
             "Hidden" = 1                    # Show hidden files
+            "HideFileExt" = 0               # Show file extensions
             "LaunchTo" = 1                  # Launch Explorer to "This PC"
             "DontPrettyPath" = 1            # Keep user path case
             "MultiTaskingAltTabFilter" = 3  # Alt Tab to Windows only, no Edge Tabs
@@ -133,31 +134,6 @@ Function Set-DesktopIconsHidden {
     }
 }
 
-# Move home folders to OneDrive
-Function Move-HomeFolders {
-    [CmdletBinding()]
-    param(
-        [Parameter()]
-        [string]$OneDriveBasePath = "C:\Users\$env:USERNAME\OneDrive\Computers"
-    )
-    
-    try {
-        $hostname = $env:computername.ToLower()
-        $path = Join-Path $OneDriveBasePath $hostname
-        $folders = "Desktop","Documents","Music","Pictures","Videos"
-
-        foreach ($folder in $folders) {
-            $folderPath = Join-Path $path $folder
-            New-Item -Path $path -Name $folder -ItemType "Directory" -Force -ErrorAction Stop
-            Set-KnownFolderPath -KnownFolder $folder -Path $folderPath -ErrorAction Stop
-            Write-Verbose "Successfully moved $folder to $folderPath"
-        }
-    }
-    catch {
-        Write-Error "Failed to move home folders: $_"
-    }
-}
-
 # Create additional folders and pin to quick access
 Function Add-AdditionalFolders {
     [CmdletBinding()]
@@ -165,37 +141,21 @@ Function Add-AdditionalFolders {
     
     try {
         $tempPath = "C:\Temp"
-        $sourcePath = Join-Path [Environment]::GetFolderPath("MyDocuments") "Source"
+        $toolsPath = "C:\Tools"
+        $sourcePath = Join-Path ([Environment]::GetFolderPath("UserProfile")) "Source"
         
         New-Item -Path "C:\" -Name "Temp" -ItemType "Directory" -Force -ErrorAction Stop
+        New-Item -Path "C:\" -Name "Tools" -ItemType "Directory" -Force -ErrorAction Stop
         New-Item -Path $sourcePath -ItemType "Directory" -Force -ErrorAction Stop
         
         $shell = New-Object -ComObject Shell.Application
         $shell.NameSpace($tempPath).Self.InvokeVerb("pintohome")
+        $shell.NameSpace($toolsPath).Self.InvokeVerb("pintohome")
         $shell.NameSpace($sourcePath).Self.InvokeVerb("pintohome")
         
         Write-Verbose "Successfully created and pinned additional folders"
     }
     catch {
         Write-Error "Failed to create additional folders: $_"
-    }
-}
-
-# Setup dotfile repo
-Function Install-Dotfiles {
-    [CmdletBinding()]
-    param(
-        [Parameter()]
-        [string]$DotfilesUrl = "https://raw.githubusercontent.com/alec-hs/dotfiles/main/runOnce.ps1"
-    )
-    
-    Write-Output "Installing dotfiles..." `n
-    try {
-        $script = Invoke-WebRequest -Uri $DotfilesUrl -UseBasicParsing -ErrorAction Stop
-        Invoke-Expression $script.Content
-        Write-Verbose "Successfully installed dotfiles"
-    }
-    catch {
-        Write-Error "Failed to install dotfiles: $_"
     }
 }
