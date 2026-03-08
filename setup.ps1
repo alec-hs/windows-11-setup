@@ -1,5 +1,7 @@
 # Script-level transcript path for cleanup and Show-ScriptEnding
 $script:transcriptPath = $null
+$script:scriptRoot = Split-Path -Parent $PSCommandPath
+$script:startedOutsideScriptRoot = ((Get-Location).Path -ne $script:scriptRoot)
 
 # Function to verify module imports
 function Test-ModuleImports {
@@ -31,24 +33,35 @@ function Invoke-ScriptCleanup {
 }
 
 try {
+    # Always anchor to repository root so relative paths are stable
+    if ($script:startedOutsideScriptRoot) {
+        Write-Output "Switching to script directory: $script:scriptRoot"
+        Set-Location -Path $script:scriptRoot
+    }
+
     # Set execution policy to allow online PS scripts for this session
     Write-Output "Setting Execution Policy for Session..."`n
     if ((Get-ExecutionPolicy -Scope Process) -ne 'Bypass') {
-        Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process' -Force
+        try {
+            Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process' -Force
+        }
+        catch {
+            throw "Unable to set process execution policy to Bypass. Run: Set-ExecutionPolicy Bypass -Scope Process -Force"
+        }
     }
 
     # Start Transcript with timestamp
-    $script:transcriptPath = ".\setup_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+    $script:transcriptPath = Join-Path $script:scriptRoot "setup_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
     Start-Transcript -Path $script:transcriptPath
 
     # Import Module Files with progress tracking
     Write-Output "Importing Modules..."
     $modules = @(
-        ".\modules\core-functions.psm1",
-        ".\modules\computer-functions.psm1",
-        ".\modules\user-functions.psm1",
-        ".\modules\app-functions.psm1",
-        ".\modules\folder-paths.psm1"
+        (Join-Path $script:scriptRoot "modules\core-functions.psm1"),
+        (Join-Path $script:scriptRoot "modules\computer-functions.psm1"),
+        (Join-Path $script:scriptRoot "modules\user-functions.psm1"),
+        (Join-Path $script:scriptRoot "modules\app-functions.psm1"),
+        (Join-Path $script:scriptRoot "modules\folder-paths.psm1")
     )
     
     for ($i = 0; $i -lt $modules.Count; $i++) {
@@ -111,7 +124,7 @@ try {
 
     # Run as Admin Section
     Write-Output "Running elevated tasks..."`n
-    Start-ElevatedCode ".\elevated.ps1"
+    Start-ElevatedCode (Join-Path $script:scriptRoot "elevated.ps1")
 
     # End Transcript before cleanup so log is fully written
     Stop-Transcript
